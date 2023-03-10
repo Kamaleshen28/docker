@@ -1,0 +1,151 @@
+# version: '3'
+# services:
+#   redis:
+#     image: redis
+#     restart: always
+#     ports:
+#       - 6380:6379
+#   authdb:
+#     image: postgres
+#     restart: always
+#     ports:
+#       - 5433:5432
+#     environment:
+#       POSTGRES_PASSWORD: kamalsasi28
+#       NODE_ENV: docker
+#       POSTGRES_USER: Kamaleshen_S
+#       POSTGRES_DB: fullStackAuthDatabase
+#   dbbackend:
+#     image: postgres
+#     restart: always
+#     ports:
+#       - 5434:5432
+#     environment:
+#       POSTGRES_PASSWORD: kamalsasi28
+#       NODE_ENV: docker
+#       POSTGRES_USER: Kamaleshen_S
+#       POSTGRES_DB: backendDatabase
+#   migration:
+#     build:
+#       context: ../auth
+#       dockerfile: Dockerfile.migrations
+#     command: npx sequelize-cli db:migrate
+#     environment:
+#       NODE_ENV: docker
+#     depends_on:
+#       - db
+#       - redis
+#   auth:
+#     build: ../auth
+#     restart: always
+#     depends_on:
+#       - db
+#       - redis
+#     ports:
+#       - 7001:7000
+#     environment:
+#       NUMBER_OF_SALTS_ROUNDS: 10
+#       JWT_SECRET_KEY: secret
+#       NODE_ENV: docker
+#       REDIS_HOST: redis
+#   server:
+#     build: ../backend
+#     restart: always
+#     depends_on:
+#       - auth
+#       - dbbackend
+#     ports:
+#       - 4001:4000
+#     environment:
+#       NODE_ENV: docker
+
+
+version: "3"
+services:
+  redis:
+    image: redis
+    restart: always
+    ports:
+      - "6379:6379"
+  authdb:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: kamalsasi28
+      POSTGRES_USER: Kamaleshen_S
+      POSTGRES_DB: fullStackAuthDatabase
+    ports:
+      - "5433:5432"
+    volumes:
+      - ..auth/database/data:/var/lib/postgresql/data
+  authmigration:
+    build:
+      context: ../auth
+    depends_on:
+      - authdb
+    command: npx sequelize-cli db:migrate
+    environment:
+      DB_HOST: authdb
+      DB_USER: Kamaleshen_S
+      DB_PASSWORD: kamalsasi28
+      DB_NAME: fullStackAuthDatabase
+  authserver:
+    build:
+      context: ../auth
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - authdb
+      - redis
+      - authmigration
+    ports:
+      - "7000:7000"
+    environment:
+      DB_HOST: authdb
+      DB_USER: Kamaleshen_S
+      DB_PASSWORD: kamalsasi28
+      DB_NAME: fullStackAuthDatabase
+      DB_PORT: 5432
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SECRET_KEY: secret
+      NUMBER_OF_SALTS_ROUNDS: 10
+  backenddb:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: kamalsasi28
+      POSTGRES_USER: Kamaleshen_S
+      POSTGRES_DB: backendDatabase
+    ports:
+      - "5434:5432"
+    volumes:
+      - ..backend/database/data:/var/lib/postgresql/data
+  backendmigration:
+    build: ../backend
+    depends_on:
+      - backenddb
+    command: npx sequelize-cli db:migrate
+    environment:
+      DB_HOST: backenddb
+      DB_USER: Kamaleshen_S
+      DB_PASSWORD: kamalsasi28
+      DB_NAME: backendDatabase
+  backendserver:
+    build: ../backend
+    restart: always
+    depends_on:
+      - backenddb
+      - redis
+      - backendmigration
+    ports:
+      - "4000:4000"
+
+    environment:
+      DB_HOST: backenddb
+      DB_USER: Kamaleshen_S
+      DB_PASSWORD: poskamalsasi28tgres
+      DB_NAME: backendDatabase
+      DB_PORT: 5434
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
