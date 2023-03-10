@@ -144,8 +144,9 @@ services:
     environment:
       DB_HOST: backenddb
       DB_USER: Kamaleshen_S
-      DB_PASSWORD: poskamalsasi28tgres
+      DB_PASSWORD: kamalsasi28
       DB_NAME: backendDatabase
       DB_PORT: 5434
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      AUTH_SERVER_HOST: http://authserver:7000/
